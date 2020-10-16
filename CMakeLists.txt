@@ -1,19 +1,17 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(libxuanwu VERSION 0.1.0)
+project(xuanwu VERSION 0.1.0)
 
 include(CTest)
 enable_testing()
-aux_source_directory(src SRC_DIR)
-include_directories(include)
+set(USE_SHARED ON CACHE INTERNAL "library link option")
 
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/output)
+SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/output)
 
+# message(${PROJECT_SOURCE_DIR})
+add_subdirectory(src)
+add_subdirectory(test)
 
-set(SRCS
-    ${SRC_DIR}    
-)
-
-add_library(${PROJECT_NAME} ${SRCS})
-
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
+# set(CPACK_PROJECT_NAME ${PROJECT_NAME})
+# set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+# include(CPack)
