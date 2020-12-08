@@ -25,10 +25,10 @@ public:
     bool open(const std::string& path);
     bool close();
 
-    FileMetaHead FileMetaHead() const;
-
+    FileMetaHead fileMetaHead() const;
 private:
-
+    FileMetaHead mFileMetaHead;
+    FileCurrentStatus mFileStatus;
 };
 
 }   // end namespace XuanWu
