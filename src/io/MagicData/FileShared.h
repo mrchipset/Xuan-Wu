@@ -27,6 +27,8 @@ public:
     uint64_t _SerialHeadId;   ///< Reserved for parsing flag
     uint64_t _SerialBodyId; ///< Serial Body Id.
     uint64_t _FileVersionId;    ///< The file IO version id, write by the worker class;
+    uint64_t _MetaInfoId;
+    uint64_t _MetaInfoSize;
 } FileMetaHead;
 
 typedef struct {

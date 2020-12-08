@@ -103,12 +103,18 @@ bool FileWriter::writeMetaInfo(const MetaInfoBase* metaInfo)
     if (!mFileHandle.is_open()) {
         return false;
     }
+
+    if (metaInfo->metaInfoSize() != mFileMetaHead._MetaInfoSize) {
+        std::cerr << R"(The meta info szie is not matched.)" << std::endl;
+        return false;
+    }
     if (!GetCurrentStatus(mFileHandle, &mCurrentStatus)) {
         std::cerr << R"(Get the status error. Please check the file.)" << std::endl;
         return false;
     }
     try {
-        mFileHandle.seekp(0, std::ios_base::beg);
+        uint64_t position = sizeof(FileMetaHead) + sizeof(FileMetaSignature);
+        mFileHandle.seekp(position, std::ios_base::beg);
         mFileHandle.write(reinterpret_cast<char*>(metaInfo->data()),
                           metaInfo->metaInfoSize());
     } catch (const std::exception& e) {
@@ -170,13 +176,17 @@ bool FileWriter::createFileHead(const FileMetaHead& metaHead,
     if (!mFileHandle.is_open()) {
         return false;
     }
+    char* pData = new char[metaHead._MetaInfoSize];
     try {
         mFileHandle.seekp(0);
         mFileHandle.write(reinterpret_cast<const char*>(&metaHead),
                           sizeof(metaHead));
         mFileHandle.write(reinterpret_cast<const char*>(&metaSignature),
                           sizeof(metaSignature));
+        mFileHandle.write(pData, metaHead._MetaInfoSize);
+        delete[] pData;
     } catch (const std::exception& e) {
+        delete[] pData;
         std::cerr << e.what() << std::endl;
         return false;
     }
