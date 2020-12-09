@@ -104,7 +104,7 @@ bool FileWriter::writeMetaInfo(const MetaInfoBase* metaInfo)
         return false;
     }
 
-    if (metaInfo->metaInfoSize() != mFileMetaHead._MetaInfoSize) {
+    if (metaInfo->metaInfoSize() != mFileMetaHead._FileMetaInfoSize) {
         std::cerr << R"(The meta info szie is not matched.)" << std::endl;
         return false;
     }
@@ -176,14 +176,14 @@ bool FileWriter::createFileHead(const FileMetaHead& metaHead,
     if (!mFileHandle.is_open()) {
         return false;
     }
-    char* pData = new char[metaHead._MetaInfoSize];
+    char* pData = new char[metaHead._FileMetaInfoSize];
     try {
         mFileHandle.seekp(0);
         mFileHandle.write(reinterpret_cast<const char*>(&metaHead),
                           sizeof(metaHead));
         mFileHandle.write(reinterpret_cast<const char*>(&metaSignature),
                           sizeof(metaSignature));
-        mFileHandle.write(pData, metaHead._MetaInfoSize);
+        mFileHandle.write(pData, metaHead._FileMetaInfoSize);
         delete[] pData;
     } catch (const std::exception& e) {
         delete[] pData;
