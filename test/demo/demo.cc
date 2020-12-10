@@ -9,25 +9,29 @@ constexpr uint64_t buff_size = 16ULL * 1ULL;
 class DataFrame : public XuanWu::DataFrameBase
 {
 public:
+    typedef struct {
+        uint64_t id;
+        uint64_t value;
+    } Data;
+
+public:
     DataFrame() : XuanWu::DataFrameBase()
     {
-        data = new char[buff_size];
-        memset(data, 0xFF, sizeof(char) * buff_size);
+        zero();
     }
 
     ~DataFrame()
     {
-        delete[] data;
     }
 
-    virtual void* frameBodyData() const override
+    virtual const void* frameBodyData() const override
     {
-        return data;
+        return &mData;
     }
 
     virtual uint64_t dataSize() const override
     {
-        return buff_size;
+        return sizeof(Data);
     }
 
     virtual bool deserialize(char* data, uint64_t size) override
@@ -35,29 +39,74 @@ public:
         if (size != buff_size) {
             return false;
         }
-
-        memcpy(this->data, data, buff_size * sizeof(char));
+        memcpy(&mData, data, sizeof(Data));
         return true;
     }
 
-    bool check()
+    bool setData(uint64_t id, uint64_t value)
     {
-        char c = 0xFF;
-        for (int i = 0; i < buff_size; ++i) {
-            if (data[i] != c) {
-                return false;
-            }
-        }
+        mData.id = id;
+        mData.value = value;
         return true;
+    }
+
+    bool check(uint64_t id, uint64_t value)
+    {
+        return mData.id == id && mData.value == value;
     }
 
     void zero()
     {
-        memset(data, 0x00, buff_size * sizeof(char));
+        memset(&mData, 0x00, sizeof(Data));
     }
 
 private:
-    char* data;
+    Data mData;
+};
+
+class FileMetaHead : public XuanWu::MetaInfoBase
+{
+public:
+    typedef struct {
+        uint64_t id;
+        uint64_t mode;
+        uint64_t serial;
+    } FileMetaHeadData;
+
+public:
+    FileMetaHead(const FileMetaHeadData& data = FileMetaHeadData()) : MetaInfoBase(),
+        mData(data)
+    {
+
+    }
+
+    virtual uint64_t metaInfoSize() const
+    {
+        return sizeof(FileMetaHeadData);
+    }
+
+    virtual const void* data() const
+    {
+        return &mData;
+    }
+
+    virtual bool deserialize(char* data, uint64_t size)
+    {
+        if (size != metaInfoSize()) {
+            return false;
+        }
+        memcpy(&mData, data, sizeof(FileMetaHeadData));
+        return true;
+    }
+
+    void print()
+    {
+        std::cout << "id:" << mData.id << std::endl
+                  << "mode:" << mData.mode << std::endl
+                  << "serial:" << mData.serial << std::endl;
+    }
+private:
+    FileMetaHeadData mData;
 };
 
 int main()
@@ -69,10 +118,24 @@ int main()
         memset(&metaHead, 0x00, sizeof(XuanWu::FileMetaHead));
         metaHead._FileVersionId = 0x0000000000000001ULL;
         metaHead._SegmentBlockSize = 8ULL;
+        metaHead._SegmentItemMetaInfoSize = sizeof(FileMetaHead::FileMetaHeadData);
+        metaHead._FileMetaInfoSize = sizeof(FileMetaHead::FileMetaHeadData);
         XuanWu::FileWriter writer(metaHead);
         writer.createNewFile("D:/tmp/test.dat");
-        XuanWu::DataFrameBase* df = new DataFrame();
-        for (uint64_t i = 0; i < size / buff_size; ++i) {
+        FileMetaHead::FileMetaHeadData data;
+        data.id = 324ULL;
+        data.mode = 3ULL;
+        data.serial = 12394849323967489ULL;
+        FileMetaHead fileMetaData(data);
+        writer.writeMetaInfo(&fileMetaData);
+        DataFrame* df = new DataFrame();
+        for (uint64_t i = 0; i < size / df->dataSize(); ++i) {
+            data.id = i;
+            data.mode = 3ULL;
+            data.serial = 12394849323967489ULL;
+            auto head = std::make_shared<FileMetaHead>(data);
+            df->setMetaInfo(head);
+            df->setData(i, i * 2);
             writer.writeDataFrame(df);
         }
         delete df;
@@ -87,15 +150,20 @@ int main()
                   << std::endl;
         std::vector<XuanWu::SegmentItemHead> segmentItemIndex;
         reader.getDataSegmentHeadList(segmentItemIndex);
+        FileMetaHead _FileMetaHead;
+        reader.getFileMetaInfo(&_FileMetaHead);
+        _FileMetaHead.print();
         for (int i = 0; i < segmentItemIndex.size(); ++i) {
             DataFrame d;
             d.zero();
             reader.getDataFrame(i, &d);
-            std::cout << i << "\t"
-                      << segmentItemIndex[i]._DataPosition << "\t"
-                      << segmentItemIndex[i]._DataLength << "\t"
-                      << "Data Check:\t" << d.check()
-                      << std::endl;
+            if (!d.check(i, i * 2)) {
+                std::cout << i << "\t"
+                          << segmentItemIndex[i]._DataPosition << "\t"
+                          << segmentItemIndex[i]._DataLength << "\t"
+                          << std::endl;
+            }
+
         }
     } catch (const std::exception& e) {
         std::cerr << e.what() << '\n';

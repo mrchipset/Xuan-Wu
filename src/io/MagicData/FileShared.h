@@ -72,7 +72,7 @@ public:
     MetaInfoBase();
     virtual ~MetaInfoBase();
     virtual uint64_t metaInfoSize() const;
-    virtual void* data() const;
+    virtual const void* data() const;
     virtual bool deserialize(char* data, uint64_t size);
 };
 
@@ -87,8 +87,8 @@ public:
     virtual ~DataFrameBase();
     virtual uint64_t serialHeadSize() const;
     virtual uint64_t dataSize() const;
-    virtual void* headData() const;
-    virtual void* frameBodyData() const;
+    virtual const void* headData() const;
+    virtual const void* frameBodyData() const;
     virtual bool deserialize(char* data, uint64_t size);
 
     void setDataPosition(uint64_t position);

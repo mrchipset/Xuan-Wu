@@ -54,7 +54,7 @@ bool FileReader::getFileMetaInfo(MetaInfoBase* metaInfo)
         mFileHandle.seekg(offset, std::ios_base::beg);
         mFileHandle.read(buff, mFileMetaHead._FileMetaInfoSize);
         // deserialize the data;
-
+        metaInfo->deserialize(buff, mFileMetaHead._FileMetaInfoSize);
         delete[] buff;
     } catch (const std::exception& e) {
         delete[] buff;
@@ -179,7 +179,7 @@ bool FileReader::readSegmentItemIndex(std::vector<SegmentItemHead>* segmentItemI
     // calculate the first segment position
     const uint64_t lHeadPosition = sizeof(FileMetaHead)
                                    + sizeof(FileMetaSignature)
-                                   + mFileMetaHead._SegmentItemMetaInfoSize;
+                                   + mFileMetaHead._FileMetaInfoSize;
     const uint64_t lSegmentItemSize = sizeof(SegmentItemHead)
                                       + mFileMetaHead._SegmentItemMetaInfoSize;
     const uint64_t lSegmentBlkSize = lSegmentItemSize

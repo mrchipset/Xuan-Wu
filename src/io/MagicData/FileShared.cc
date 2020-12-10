@@ -17,7 +17,7 @@ uint64_t MetaInfoBase::metaInfoSize() const
     return 0ULL;
 }
 
-void* MetaInfoBase::data() const
+const void* MetaInfoBase::data() const
 {
     return nullptr;
 }
@@ -51,7 +51,7 @@ uint64_t DataFrameBase::dataSize() const
     return 0ULL;
 }
 
-void* DataFrameBase::headData() const
+const void* DataFrameBase::headData() const
 {
     if (!mMetaInfoPtr) {
         return nullptr;
@@ -59,7 +59,7 @@ void* DataFrameBase::headData() const
     return mMetaInfoPtr->data();
 }
 
-void* DataFrameBase::frameBodyData() const
+const void* DataFrameBase::frameBodyData() const
 {
     return nullptr;
 }

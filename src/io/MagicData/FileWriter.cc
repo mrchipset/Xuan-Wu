@@ -115,7 +115,7 @@ bool FileWriter::writeMetaInfo(const MetaInfoBase* metaInfo)
     try {
         uint64_t position = sizeof(FileMetaHead) + sizeof(FileMetaSignature);
         mFileHandle.seekp(position, std::ios_base::beg);
-        mFileHandle.write(reinterpret_cast<char*>(metaInfo->data()),
+        mFileHandle.write(reinterpret_cast<const char*>(metaInfo->data()),
                           metaInfo->metaInfoSize());
     } catch (const std::exception& e) {
         std::cerr << e.what() << '\n';
@@ -161,7 +161,7 @@ bool FileWriter::writeDataFrame(DataFrameBase* dataFrame)
     // write the data frame
     try {
         mFileHandle.seekp(0, std::ios_base::end);
-        mFileHandle.write(reinterpret_cast<char*>(dataFrame->frameBodyData()),
+        mFileHandle.write(reinterpret_cast<const char*>(dataFrame->frameBodyData()),
                           dataFrame->dataSize());
         mFileMetaSignature._DataFrameCount++;
     } catch (const std::exception& e) {
@@ -246,7 +246,7 @@ bool FileWriter::writeSerialHead(uint64_t segBlkOffset, uint64_t segBlkId, const
         mFileHandle.seekp(position, std::ios_base::beg);
         mFileHandle.write(reinterpret_cast<const char*>(dataFrame->segmentItemHead()),
                           sizeof(SegmentItemHead));
-        mFileHandle.write(reinterpret_cast<char*>(dataFrame->headData()),
+        mFileHandle.write(reinterpret_cast<const char*>(dataFrame->headData()),
                           dataFrame->serialHeadSize());
         SetCurrentStatus(mFileHandle, &mCurrentStatus);
     } catch (const std::exception& e) {
